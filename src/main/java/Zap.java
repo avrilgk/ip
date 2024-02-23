@@ -1,10 +1,19 @@
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
 
 public class Zap {
     private static List<Task> tasks = new ArrayList<>();
+    private static final String FILE_PATH = "tasks.txt";
+
     public static void main(String[] args) {
+
+        loadTasksFromFile();
+
         String logo = """
               _____   _   _   ____
              |__  /  / \\ / | |  _ \\
@@ -67,6 +76,47 @@ public class Zap {
             }
         } while (true);
         scanner.close();
+    }
+
+    private static void loadTasksFromFile() {
+        try {
+            File file = new File(FILE_PATH);
+            if (!file.exists()) {
+                System.out.println("Data file does not exist. Starting with an empty task list.");
+                return;
+            }
+
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] parts = line.split("\\|");
+
+                String taskType = parts[0].trim();
+                boolean isDone = parts[1].trim().equals("1");
+                String taskDescription = parts[2].trim();
+
+                switch (taskType) {
+                    case "T":
+                        tasks.add(new TodoTask(taskDescription));
+                        break;
+                    case "D":
+                        String deadline = parts[3].trim();
+                        tasks.add(new DeadlineTask(taskDescription, deadline));
+                        break;
+                    case "E":
+                        String startTime = parts[3].trim();
+                        String endTime = parts[4].trim();
+                        tasks.add(new EventTask(taskDescription, startTime, endTime));
+                        break;
+                    default:
+                        System.out.println("Unknown task type: " + taskType);
+                        continue;
+                }
+                scanner.close();
+            }
+        }  catch (IOException e) {
+            System.out.println("Error loading tasks from file: " + e.getMessage());
+        }
     }
 
     private static void addTodoTask(String userCommand) {
