@@ -1,22 +1,28 @@
 public class Task {
-    private String description;
-    private boolean done;
+    public String description;
+    public boolean isDone;
+    public String status;
 
     public Task(String description) {
         this.description = description;
-        this.done = false;
+        this.isDone = false;
+        this.status = "0";
     }
 
     public void markAsDone() {
-        this.done = true;
+        this.isDone = true;
     }
 
     public void markAsNotDone() {
-        this.done = false;
+        this.isDone = false;
     }
 
     @Override
     public String toString() {
-        return (done ? "[X] " : "[ ] ") + description;
+        return (isDone ? "[X] " : "[ ] ") + description;
+    }
+
+    public String toFileString() {
+        return (status = isDone ? "1" : "0");
     }
 }

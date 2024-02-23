@@ -26,6 +26,7 @@ public class Zap {
         greeting();
         processCommands();
         exit();
+        saveTasksToFile();
     }
 
     private static void greeting() {
@@ -79,6 +80,7 @@ public class Zap {
     }
 
     private static void loadTasksFromFile() {
+
         try {
             File file = new File(FILE_PATH);
             if (!file.exists()) {
@@ -95,28 +97,57 @@ public class Zap {
                 boolean isDone = parts[1].trim().equals("1");
                 String taskDescription = parts[2].trim();
 
+                Task task = null;
                 switch (taskType) {
                     case "T":
-                        tasks.add(new TodoTask(taskDescription));
+                        task = new TodoTask(taskDescription);
                         break;
                     case "D":
                         String deadline = parts[3].trim();
-                        tasks.add(new DeadlineTask(taskDescription, deadline));
+                        task = new DeadlineTask(taskDescription, deadline);
                         break;
                     case "E":
                         String startTime = parts[3].trim();
                         String endTime = parts[4].trim();
-                        tasks.add(new EventTask(taskDescription, startTime, endTime));
-                        break;
+                        task = new EventTask(taskDescription, startTime, endTime);
                     default:
                         System.out.println("Unknown task type: " + taskType);
                         continue;
                 }
+
+                if (isDone) {
+                        task.markAsDone();
+                }
+                tasks.add(task);
                 scanner.close();
             }
         }  catch (IOException e) {
             System.out.println("Error loading tasks from file: " + e.getMessage());
         }
+    }
+
+    private static void saveTasksToFile() {
+        File file = new File("./data/tasks.txt");
+
+        File parentDir = file.getParentFile();
+        if (!parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+
+        try (FileWriter writer = new FileWriter(file)) {
+            for (Task task: tasks) {
+                String description = task.description;
+                String isDone = String.valueOf(task.isDone);
+                String[] taskString = task.toString().split(" ");
+                String taskType = taskString[0].replace("]", "").replace("[", "").trim();
+
+                writer.write(taskType + " | " + isDone + " | " + description + System.lineSeparator());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
     }
 
     private static void addTodoTask(String userCommand) {
